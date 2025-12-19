@@ -31,6 +31,7 @@ export const POST = async (req: NextRequest) => {
             price: body.get("price"),
             discount: body.get("discount"),
             image: `/products/${fileName}`,
+            quantity: body.get("quantity")
         }
 
         const product = await ProductModel.create(payload)
@@ -45,17 +46,23 @@ export const GET = async (req: NextRequest) => {
     try {
         const {searchParams} = new URL(req.url)
         const slug = searchParams.get("slug")
+        const search = searchParams.get("search")
         const page = Number(searchParams.get("page")) || 1
         const limit = Number(searchParams.get("limit")) || 16
         const skip = (page-1)*limit
+        const total = await ProductModel.countDocuments()
+
+        if(search) {
+            const products = await ProductModel.find({title: RegExp(search, 'i')}).sort({createdAt: -1}).skip(skip).limit(limit)
+            return res.json({total, data: products})
+        }
 
         if(slug)
         {
             const slugs = await ProductModel.distinct('slug')
             return res.json(slugs)
         }
-        
-        const total = await ProductModel.countDocuments()
+
         const products = await ProductModel.find().sort({createdAt: -1}).skip(skip).limit(limit)
         return res.json({total, data: products})
         

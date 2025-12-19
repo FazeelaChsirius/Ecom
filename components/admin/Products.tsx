@@ -1,28 +1,45 @@
 'use client'
-import { ArrowRightOutlined, DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons'
-import { Button, Card, Divider, Form, Input, InputNumber, message, Modal, Pagination, Result, Skeleton, Tag, Upload } from 'antd'
+import { ArrowRightOutlined, DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons'
+import { Button, Card, Divider, Form, Input, InputNumber, message, Modal, Pagination, Popconfirm, Result, Skeleton, Tag, Upload } from 'antd'
 import Image from 'next/image'
-import { useState } from 'react'
-import '@ant-design/v5-patch-for-react-19';
+import { useEffect, useState } from 'react'
+import { debounce } from "lodash"
 import clientCatchError from '@/lib/client-catch-error'
 import axios from 'axios'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import fetcher from '@/lib/fetcher'
+import '@ant-design/v5-patch-for-react-19';
 
 const Products = () => {
   const [productForm] = Form.useForm()
+  const [editId, setEditId] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(16)
+  const [products, setProducts] = useState({data: [], total: 0})
   
   const { data, error, isLoading } = useSWR(`/api/product?page=${page}&limit=${limit}`, fetcher)
 
-  const onSearch = (values: any) => {
-    console.log(values)
-  }
+  useEffect(() => {
+    if(data) {
+      setProducts(data)
+    }
+  }, [data])
+
+  const onSearch = debounce(async (e: any) => {
+    try {
+      const value = e.target.value.trim()
+      const { data } = await axios.get(`/api/product?search=${value}`)
+      setProducts(data)
+      
+    } catch (err) {
+      clientCatchError(err)
+    }
+  }, 2000)
 
   const handleClose = () => {
     setOpen(false)
+    setEditId(null)
     productForm.resetFields()
   }
 
@@ -33,18 +50,74 @@ const Products = () => {
       for(let key in values) {
         formData.append(key, values[key])
       }
-      const {data} = await axios.post('/api/product', formData)
+      await axios.post('/api/product', formData)
       message.success('Product addd successfully !')
       handleClose()
       
     } catch (err) {
       clientCatchError(err )
-      
     }
   }
 
-  const onPaginate = (page: number) => {
+  const onPaginate = (page: number, limit: number) => {
     setPage(page)
+    setLimit(limit)
+  }
+
+  const editProduct = (item: any) => {
+    setEditId(item._id)
+    setOpen(true)
+    productForm.setFieldsValue(item)
+  }
+
+  const deleteProduct = async (id: string) => {
+    try {
+      await axios.delete(`/api/product/${id}`)
+      mutate(`/api/product?page=${page}&limit=${limit}`)
+      
+    } catch (err) {
+      clientCatchError(err)
+    }
+  }
+
+  const saveProduct = async (values: any) => {
+    try {
+      if(typeof values.image === "object") {
+        values.image = values.image.file.originFileObj 
+      }
+      await axios.put(`/api/product/${editId}`, values)
+      handleClose()
+      mutate(`/api/product?page=${page}&limit=${limit}`)
+
+    } catch (err) {
+      clientCatchError(err)
+    }
+  }
+
+  const changeImage = (id: string) => {
+    try {
+      const input = document.createElement("input")
+      input.type = "file"
+      input.accept = "image/*"
+      input.click()
+
+      input.onchange = async () => {
+        if(!input.files) {
+          return message.error("File not selected")
+        }
+        const file = input.files[0]
+        input.remove()
+        const formData = new FormData()
+        formData.append("id", id)
+        formData.append("image", file)
+        await axios.put("/api/product/change-image", formData)
+        mutate(`/api/product?page=${page}&limit=${limit}`)
+      }
+      
+    } catch (err) {
+      clientCatchError(err)
+    }
+
   }
 
   if(isLoading)
@@ -61,37 +134,40 @@ const Products = () => {
   return (
     <div className='flex flex-col gap-8'>
       <div className='flex justify-between items-center'>
-        <Form onFinish={onSearch}>
-          <Form.Item name="search" rules={[{required: true}]} className='!mb-0'>
-            <Input  
-              placeholder='Search this site' 
-              suffix={<Button htmlType='submit' type="text" icon={<SearchOutlined />} />}
-              className='!w-[350px]'
-            />
-          </Form.Item>
-        </Form>
+        <Input  
+          placeholder='Search this site' 
+          size='large'
+          className='!w-[350px]'
+          onChange={onSearch}
+        />
         <Button onClick={() => setOpen(true)} type='primary' size='large' icon={<PlusOutlined />} className='!bg-indigo-500'>Add Product</Button>
       </div>
 
       <div className='grid grid-cols-4 gap-8'>
         {
-          data.data.map((item: any, index: number) => (
+          products.data.map((item: any, index: number) => (
             <Card 
               key={index}
               hoverable
               cover={
                 <div className='relative w-full h-[250px]'>
-                  <Image 
-                    src={item.image}
-                    alt={`product-${index}`} 
-                    fill 
-                    className='rounded-t-lg shadow-lg object-cover'
-                  />
+                  <Popconfirm title="Do you want to change image ?" onConfirm={() => changeImage(item._id)}>
+                    <Image 
+                      src={item.image}
+                      alt={`product-${index}`} 
+                      fill 
+                      sizes='350px'
+                      priority
+                      className='rounded-t-lg shadow-lg object-cover'
+                    />
+                  </Popconfirm>
                 </div>
               }
               actions={[
-                <EditOutlined key="edit" className='!text-green-400'/>,
-                <DeleteOutlined key="delete" className='!text-rose-400'/>
+                <EditOutlined key="edit" className='!text-green-400' onClick={() => editProduct(item)}/>,
+                <Popconfirm title="Do you want to change image ?" onConfirm={() => deleteProduct(item._id)}>
+                  <DeleteOutlined key="delete" className='!text-rose-400'/>
+                </Popconfirm>
               ]}
             >
               <Card.Meta 
@@ -110,19 +186,21 @@ const Products = () => {
           ))
         }
       </div>
+
       <div className='flex justify-end w-full'>
         <Pagination 
-          total={data.total}
+          total={products.total}
           current={page}
           onChange={onPaginate}
           pageSizeOptions={[16, 32, 64, 100]}
           defaultPageSize={limit}
         />
       </div>
+       
       <Modal open={open} onCancel={handleClose} width={720} centered footer={null} maskClosable={false}>
         <h1 className='text-lg font-medium'>Add a new product</h1>
         <Divider />
-        <Form layout='vertical' onFinish={createProduct} form={productForm}>
+        <Form layout='vertical' onFinish={editId ? saveProduct : createProduct} form={productForm}>
           <Form.Item
             label="Product name"
             name="title"
@@ -176,14 +254,22 @@ const Products = () => {
             <Input.TextArea rows={4} placeholder='Description'/>
           </Form.Item>
 
-          <Form.Item name='image' rules={[{required: true}]}>
-            <Upload fileList={[]}>
-              <Button size='large' icon={<UploadOutlined />}>Upload a product image</Button>
-            </Upload>
-          </Form.Item>
+          {
+            !editId && 
+              <Form.Item name='image' rules={[{required: true}]}>
+                <Upload fileList={[]}>
+                  <Button size='large' icon={<UploadOutlined />}>Upload a product image</Button>
+                </Upload>
+              </Form.Item>
+          }
 
           <Form.Item>
-            <Button htmlType='submit' size='large' type='primary' icon={<ArrowRightOutlined />}>Add now</Button>
+            {
+              editId ? 
+                <Button htmlType='submit' size='large' type='primary' danger icon={<SaveOutlined />}>Save changes</Button>
+                : 
+                <Button htmlType='submit' size='large' type='primary' icon={<ArrowRightOutlined />}>Add now</Button>
+            }
           </Form.Item>
         </Form>
       </Modal>
