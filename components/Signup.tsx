@@ -6,11 +6,23 @@ import Logo from './shared/Logo'
 import { UserAddOutlined } from '@ant-design/icons'
 import '@ant-design/v5-patch-for-react-19';
 import Link from 'next/link'
+import clientCatchError from '@/lib/client-catch-error'
+import axios from 'axios'
+import { useRouter } from 'next/navigation'
 
 const Signup = () => {
-    const signup = (value: any) => {
-        console.log(value)
+    const router = useRouter()
+
+    const signup = async (value: any) => {
+        try {
+            await axios.post('api/user/signup', value)
+            router.push('/login')
+
+        } catch (err) {
+            clientCatchError(err)
+        }
     }
+
     return (
         <div className='bg-gray-100 h-screen grid grid-cols-2 animate__animated animate__fadeIn overflow-hidden'>
             <div className='relative'>
