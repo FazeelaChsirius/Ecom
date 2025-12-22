@@ -28,7 +28,7 @@ const Products: FC<DataInterface> = ({ data }) => {
               <div className='relative w-full h-[250px]'>
                 <Image 
                   src={item.image}
-                  alt={`product-${index}`} 
+                  alt={`product-${item.title}`} 
                   fill 
                   sizes='350px'
                   priority

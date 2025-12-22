@@ -34,7 +34,8 @@ const Layout: FC<ChildrenInterface> = ({children}) => {
   const blacklists = [
     "/admin",
     "/signup",
-    "/login"
+    "/login",
+    "/user"
   ]
 
   const isBlacklist = blacklists.some((path) => pathname.startsWith(path)) 
