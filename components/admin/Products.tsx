@@ -9,6 +9,7 @@ import axios from 'axios'
 import useSWR, { mutate } from 'swr'
 import fetcher from '@/lib/fetcher'
 import '@ant-design/v5-patch-for-react-19';
+import priceCalculate from '@/lib/price-calculate'
 
 const Products = () => {
   const [productForm] = Form.useForm()
@@ -174,7 +175,7 @@ const Products = () => {
                 title={item.title}
                 description={
                   <div className='flex gap-2'>
-                    <label>${item.price}</label>
+                    <label>${priceCalculate(item.price, item.discount)}</label>
                     <del>${item.price}</del>
                     <label>(${item.discount}% off)</label>
                   </div>

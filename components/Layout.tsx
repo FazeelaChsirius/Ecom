@@ -65,7 +65,7 @@ const Layout: FC<ChildrenInterface> = ({children}) => {
         </Link>
       </nav>
 
-        <div className='w-8/12 mx-auto py-24'>{children}</div>
+        <div className='w-9/12 mx-auto py-24'>{children}</div>
 
         <footer className='bg-zinc-800 h-[450px] flex items-center justify-center'>
           <h1 className='text-5xl text-white'>My footer !</h1>
