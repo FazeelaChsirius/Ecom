@@ -6,11 +6,40 @@ import Logo from './shared/Logo'
 import { ArrowRightOutlined, GoogleOutlined } from '@ant-design/icons'
 import '@ant-design/v5-patch-for-react-19';
 import Link from 'next/link'
+import clientCatchError from '@/lib/client-catch-error'
+import { signIn } from 'next-auth/react'
+import { redirect } from 'next/dist/server/api-utils'
 
 const Login = () => {
-    const login = (value: any) => {
-        console.log(value)
+    const login = async (value: any) => {
+        try {
+            const payload = {
+                ...value,
+                redirect: true,
+                callbackUrl: '/'
+            }
+            const res =  await signIn("credentials", payload)
+            console.log(res)
+            
+        } catch (err) {
+            clientCatchError(err)
+        }
     }
+
+    const signInWithGoogle = async () => {
+        try {
+            const payload = {
+                redirect: true,
+                callbackUrl: '/'
+            }
+            const res = await signIn('google', payload)
+            console.log('res-google', res)
+            
+        } catch (err) {
+            clientCatchError(err)
+        }
+    }
+
     return (
         <div className='bg-gray-100 h-screen grid grid-cols-2 animate__animated animate__fadeIn overflow-hidden'>
             <div className='relative'>
@@ -51,7 +80,7 @@ const Login = () => {
                             </Form.Item>
                         </Form>
                         <Divider />
-                        <Button icon={<GoogleOutlined />} size='large' className='w-full' type='primary' danger>Signin with Google</Button>
+                        <Button icon={<GoogleOutlined />} onClick={signInWithGoogle} size='large' className='w-full' type='primary' danger>Signin with Google</Button>
                         <div className='flex gap-2'>
                             <p className='text-gray-500'>Don`t have an account ?</p>
                             <Link href="/signup">Sign up</Link>
