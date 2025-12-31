@@ -14,6 +14,7 @@ import Link from 'next/link';
 import ChildrenInterface from '@/interface/children.interface';
 import Logo from '../shared/Logo';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 const { Header, Content, Sider } = Layout;
 
@@ -38,11 +39,14 @@ export const getBreadcrumbs = (pathname: string) => {
 
 
 const AdminLayout: FC<ChildrenInterface> = ({children}) => {
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken()
+
+  const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken()
 
   const pathname = usePathname()
+
+  const logout = async () => {
+    await signOut()
+  }
 
   const menus = [
     {
@@ -76,7 +80,7 @@ const AdminLayout: FC<ChildrenInterface> = ({children}) => {
       },
       {
         icon: <LogoutOutlined />,
-        label: <a>Logout</a>,
+        label: <a onClick={logout}>Logout</a>,
         key: 'logout'
       },
       {

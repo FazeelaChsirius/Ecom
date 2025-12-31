@@ -1,16 +1,29 @@
 'use client'
 import ChildrenInterface from '@/interface/children.interface'
-import { CreditCardOutlined, LogoutOutlined, ReconciliationOutlined, ShoppingOutlined, UserOutlined } from '@ant-design/icons'
+import { CreditCardOutlined, LogoutOutlined, ReconciliationOutlined, ShoppingOutlined } from '@ant-design/icons'
 import { Avatar, Breadcrumb, Button, Card, Layout, Menu } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import Link from 'next/link'
 import React, { FC } from 'react'
 import { getBreadcrumbs } from '../admin/AdminLayout'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { signOut, useSession } from 'next-auth/react'
 
 const UserLayout: FC<ChildrenInterface> = ({ children }) => {
     const pathname = usePathname()
     
+    const logout = async () => {
+        await signOut()
+    }
+
+    // const session = useSession()
+    // const router = useRouter()
+    
+    // if(!session.data) {
+    //     router.push('/login')
+    //     return null
+    // }
+
     const menus = [
         {
             icon: <ShoppingOutlined />,
@@ -43,7 +56,7 @@ const UserLayout: FC<ChildrenInterface> = ({ children }) => {
                             <p className='text-gray-300 mb-3'>email@gmail.com</p>
                         </div>
                     </div>
-                    <Button icon={<LogoutOutlined />} size='large'>Logout</Button>
+                    <Button onClick={logout} icon={<LogoutOutlined />} size='large'>Logout</Button>
                 </div>
             </Sider>
             <Layout>
