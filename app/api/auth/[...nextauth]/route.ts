@@ -68,6 +68,8 @@ export const authOptions: NextAuthOptions = {
                     customUser.email = data.email
                     customUser.name = data.name
                     customUser.gender = data.gender
+                    customUser.age = data.age
+                    customUser.createdAt = data.createdAt
                     return true
 
                 } catch (err) {
@@ -96,7 +98,8 @@ export const authOptions: NextAuthOptions = {
             }
             return customSession
         }
-    }
+    },
+    secret: process.env.NEXTAUTH_SECRET
 }
 
 const handler = NextAuth(authOptions)

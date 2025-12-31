@@ -14,6 +14,7 @@ export const POST = async (req: NextRequest) => {
         const provider = body.provider
 
         const user = await UserModel.findOne({email})
+        console.log('login-user', user)
 
         const payload = {
             id: user._id,
@@ -21,7 +22,7 @@ export const POST = async (req: NextRequest) => {
             email: user.email,
             createdAt: user.createdAt,
             gender: 'male',
-            age: '25',
+            age: '25'
         }
 
         if(!user)
