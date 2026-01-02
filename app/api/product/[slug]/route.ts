@@ -1,5 +1,6 @@
+const db = `${process.env.DB_URL}/${process.env.DB_NAME}`
 import mongoose from "mongoose"
-mongoose.connect(process.env.DB!)
+mongoose.connect(db)
 
 import { NextRequest, NextResponse as res } from "next/server"
 import ServerCatchError from "@/lib/server-catch-error"
