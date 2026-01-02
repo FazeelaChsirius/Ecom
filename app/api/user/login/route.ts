@@ -1,5 +1,6 @@
+const db = `${process.env.DB_URL}/${process.env.DB_NAME}`
 import mongoose from "mongoose"
-mongoose.connect(process.env.DB!)
+mongoose.connect(db)
 
 import bcrypt from "bcrypt"
 import ServerCatchError from "@/lib/server-catch-error"
@@ -14,15 +15,12 @@ export const POST = async (req: NextRequest) => {
         const provider = body.provider
 
         const user = await UserModel.findOne({email})
-        console.log('login-user', user)
 
         const payload = {
             id: user._id,
             name: user.fullname,
             email: user.email,
-            createdAt: user.createdAt,
-            gender: 'male',
-            age: '25'
+            role: user.role
         }
 
         if(!user)
