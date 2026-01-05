@@ -52,6 +52,7 @@ const Products = () => {
         formData.append(key, values[key])
       }
       await axios.post('/api/product', formData)
+      mutate(`/api/product?page=${page}&limit=${limit}`)
       message.success('Product addd successfully !')
       handleClose()
       
