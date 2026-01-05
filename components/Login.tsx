@@ -7,19 +7,29 @@ import { ArrowRightOutlined, GoogleOutlined } from '@ant-design/icons'
 import '@ant-design/v5-patch-for-react-19';
 import Link from 'next/link'
 import clientCatchError from '@/lib/client-catch-error'
-import { signIn } from 'next-auth/react'
-import { redirect } from 'next/dist/server/api-utils'
+import { getSession, signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 const Login = () => {
+    const router = useRouter()
+
     const login = async (value: any) => {
         try {
             const payload = {
                 ...value,
-                redirect: true,
-                callbackUrl: '/'
+                redirect: false
             }
-            const res =  await signIn("credentials", payload)
-            console.log(res)
+            await signIn("credentials", payload)
+            const session = await getSession()
+            
+            if(!session) 
+                throw new Error("Failed to login user")
+
+            if(session.user.role === "user")
+                return router.replace("/user/orders")
+
+            if(session.user.role === "admin")
+                return router.replace("/admin/orders")
             
         } catch (err) {
             clientCatchError(err)

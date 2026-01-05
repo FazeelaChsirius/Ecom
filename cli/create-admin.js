@@ -4,6 +4,7 @@ dotenv.config()
 
 import chalk from "chalk"
 import inquirer from "inquirer"
+import bcrypt from 'bcrypt'
 import { MongoClient } from "mongodb"
 
 const promptOptions = [{
@@ -73,6 +74,7 @@ const inputOtions = [
 const createRole = async (role, db) => {
     try {
         const input = await inquirer.prompt(inputOtions)
+        input.password = await bcrypt.hash(input.password, 12)
         input.role = role
         input.createdAt = new Date()
         input.updatedAt = new Date()

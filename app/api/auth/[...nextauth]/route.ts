@@ -1,24 +1,7 @@
 import axios from "axios"
-import NextAuth, { NextAuthOptions, Session, User } from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-
-interface CustomSessionInterface extends Session {
-    user: {
-        id: string
-        email: string
-        name: string
-        gender: string
-        age: string
-        createdAt: string
-    }
-}
-
-interface CustomUserInterface extends User{
-    gender: string
-    age: string
-    createdAt: string
-}
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -56,20 +39,17 @@ export const authOptions: NextAuthOptions = {
     },
     callbacks: {
         async signIn({user, account}) {
-            const customUser = user as CustomUserInterface
             if(account?.provider === "google") { 
                 try {
                     const payload = {
-                        email: customUser?.email,
+                        email: user?.email,
                         provider: "google"
                     }
                     const { data } = await axios.post(`${process.env.SERVER}/api/user/login`, payload)
-                    customUser.id = data.id
-                    customUser.email = data.email
-                    customUser.name = data.name
-                    customUser.gender = data.gender
-                    customUser.age = data.age
-                    customUser.createdAt = data.createdAt
+                    user.id = data.id
+                    user.email = data.email
+                    user.name = data.name
+                    user.role = data.role
                     return true
 
                 } catch (err) {
@@ -79,24 +59,18 @@ export const authOptions: NextAuthOptions = {
             return true
         },
         async jwt({token, user}) {
-            const customUser = user as CustomUserInterface
-            if(customUser) {
-                token.id = customUser.id
-                token.gender = customUser.gender 
-                token.age = customUser.age
-                token.createdAt = customUser.createdAt
+            if(user) {
+                token.id = user.id
+                token.role = user.role
             }
             return token
         },
         async session({session, token}) {
-            const customSession = session as CustomSessionInterface
             if(token) {
-                customSession.user.id = token.id as string
-                customSession.user.gender = token.gender as string
-                customSession.user.age = token.age as string
-                customSession.user.createdAt = token.createdAt as string
+                session.user.id = token.id as string
+                session.user.role = token.role as string
             }
-            return customSession
+            return session
         }
     },
     secret: process.env.NEXTAUTH_SECRET
