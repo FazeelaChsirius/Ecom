@@ -1,73 +1,29 @@
 'use client'
-import { Avatar, Select, Skeleton, Table } from 'antd'
+import fetcher from '@/lib/fetcher'
+import { Avatar, Skeleton, Table, Tag } from 'antd'
 import moment from 'moment'
-
-const data = [
-  {
-    "orderId": "ORD1001",
-    "userId": "USR001",
-    "product": {
-      "productId": "P001",
-      "productName": "Wireless Mouse",
-      "quantity": 2,
-      "price": 29.99
-    },
-    "totalAmount": 59.98,
-    "status": "pending",
-    "createdAt": "2025-06-05T10:00:00Z"
-  },
-  {
-    "orderId": "ORD1002",
-    "userId": "USR002",
-    "product": {
-      "productId": "P003",
-      "productName": "Bluetooth Headphones",
-      "quantity": 1,
-      "price": 59.99
-    },
-    "totalAmount": 59.99,
-    "status": "success",
-    "createdAt": "2025-06-04T12:45:00Z"
-  },
-  {
-    "orderId": "ORD1003",
-    "userId": "USR003",
-    "product": {
-      "productId": "P002",
-      "productName": "USB-C Charger",
-      "quantity": 3,
-      "price": 29.99
-    },
-    "totalAmount": 89.97,
-    "status": "error",
-    "createdAt": "2025-06-03T14:30:00Z"
-  },
-  {
-    "orderId": "ORD1004",
-    "userId": "USR004",
-    "product": {
-      "productId": "P004",
-      "productName": "Laptop Stand",
-      "quantity": 1,
-      "price": 49.99
-    },
-    "totalAmount": 49.99,
-    "status": "warning",
-    "createdAt": "2025-06-02T16:00:00Z"
-  }
-]
+import useSWR from 'swr'
 
 const Payments = () => {
+  const {data, error, isLoading} = useSWR('/api/payment', fetcher)
+  console.log('payment-data', data)
+
+  if(isLoading)
+    return <Skeleton active />
+
+  if(error)
+    return <h1 className='text-rose-500'>{error.message}</h1>
+
   const columns = [
     {
       title: "Customer",
       key: "customer",
-      render: () => (
-        <div className='flex gap-3'>
+      render: (item: any, index: any) => (
+        <div className='flex gap-3' key={index}>
           <Avatar size="large" className='!bg-orange-400'>M</Avatar>
           <div className='flex flex-col'>
-            <h1 className='font-medium'>Er Saurav</h1>
-            <label className='text-gray-500'>email@gmail.com</label>
+            <h1 className='font-medium capitalize'>{item.user.fullname}</h1>
+            <label className='text-gray-500'>{item.user.email}</label>
           </div>
         </div>
       )
@@ -75,33 +31,29 @@ const Payments = () => {
     {
       title: "Product",
       key: "product",
+      render: (item: any, index: any) => (
+        <label key={index} className='capitalize'>{item.order.product.title}</label>
+      )
+    },
+    {
+      title: "Payment ID",
+      key: "paymentId",
+      render: (item: any, index: any) => (
+        <label key={index} className='capitalize'>{item.paymentId}</label>
+      )
+    },
+    {
+      title: "Amount",
+      key: "amount",
       render: (item: any) => (
-        <label>{item.product.productName}</label>
+        <label>${item.order.price}</label>
       )
     },
     {
-      title: "Price",
-      key: "price",
-      render: (item: any) => (
-        <label>${item.product.price}</label>
-      )
-    },
-    {
-      title: "Address",
-      key: "address",
-      render: () => (
-        <label className='text-gray-600'>742 Evergreen, Springfield, USA</label>
-      )
-    },
-    {
-      title: "Status",
-      key: "status",
-      render: () => (
-        <Select placeholder="status" style={{width: 120}}>
-          <Select.Option value="processing">Processing</Select.Option>
-          <Select.Option value="dispatched">Dispatched</Select.Option>
-          <Select.Option value="returned">Returned</Select.Option>
-        </Select>
+      title: 'Vendor',
+      key: 'vendor',
+      render: (item: any, index: any) => (
+        <Tag className='capitalize'>{item.vendor}</Tag>
       )
     },
     {
@@ -119,7 +71,7 @@ const Payments = () => {
       <Table 
         columns={columns}
         dataSource={data}
-        rowKey="orderId"
+        rowKey="_id"
       />
     </div>
   )

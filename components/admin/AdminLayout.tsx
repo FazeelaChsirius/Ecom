@@ -82,11 +82,6 @@ const AdminLayout: FC<ChildrenInterface> = ({children}) => {
         icon: <LogoutOutlined />,
         label: <a onClick={logout}>Logout</a>,
         key: 'logout'
-      },
-      {
-        icon: <SettingOutlined />,
-        label: <a>Settings</a>,
-        key: 'settings'
       }
     ]
   }
