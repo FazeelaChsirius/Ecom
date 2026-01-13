@@ -1,73 +1,42 @@
 'use client'
-import { Avatar, Select, Skeleton, Table } from 'antd'
+import clientCatchError from '@/lib/client-catch-error'
+import fetcher from '@/lib/fetcher'
+import { Avatar, message, Select, Skeleton, Table } from 'antd'
+import axios from 'axios'
 import moment from 'moment'
-
-const data = [
-  {
-    "orderId": "ORD1001",
-    "userId": "USR001",
-    "product": {
-      "productId": "P001",
-      "productName": "Wireless Mouse",
-      "quantity": 2,
-      "price": 29.99
-    },
-    "totalAmount": 59.98,
-    "status": "pending",
-    "createdAt": "2025-06-05T10:00:00Z"
-  },
-  {
-    "orderId": "ORD1002",
-    "userId": "USR002",
-    "product": {
-      "productId": "P003",
-      "productName": "Bluetooth Headphones",
-      "quantity": 1,
-      "price": 59.99
-    },
-    "totalAmount": 59.99,
-    "status": "success",
-    "createdAt": "2025-06-04T12:45:00Z"
-  },
-  {
-    "orderId": "ORD1003",
-    "userId": "USR003",
-    "product": {
-      "productId": "P002",
-      "productName": "USB-C Charger",
-      "quantity": 3,
-      "price": 29.99
-    },
-    "totalAmount": 89.97,
-    "status": "error",
-    "createdAt": "2025-06-03T14:30:00Z"
-  },
-  {
-    "orderId": "ORD1004",
-    "userId": "USR004",
-    "product": {
-      "productId": "P004",
-      "productName": "Laptop Stand",
-      "quantity": 1,
-      "price": 49.99
-    },
-    "totalAmount": 49.99,
-    "status": "warning",
-    "createdAt": "2025-06-02T16:00:00Z"
-  }
-]
+import useSWR, { mutate } from 'swr'
+import "@ant-design/v5-patch-for-react-19"
 
 const Orders = () => {
+  const {data, error, isLoading} = useSWR('/api/order', fetcher)
+
+  if(isLoading)
+    return <Skeleton active />
+
+  if(error)
+    return <h1 className='text-rose-500 font-medium'>{error.message}</h1>
+
+  const changeStatus = async (status: string, id: string) => {
+    try {
+      await axios.put(`/api/order/${id}`, {status})
+      message.success(`Product status changed to ${status}`)
+      mutate('/api/order')
+
+    } catch (err) {
+      clientCatchError(err)
+    }
+  }
+
   const columns = [
     {
       title: "Customer",
       key: "customer",
-      render: () => (
-        <div className='flex gap-3'>
-          <Avatar size="large" className='!bg-orange-400'>M</Avatar>
+      render: (item: any, index: any) => (
+        <div className='flex gap-3' key={index}>
+          <Avatar size="large" className='!bg-orange-400 capitalize font-bold'>{item.user.fullname[0]}</Avatar>
           <div className='flex flex-col'>
-            <h1 className='font-medium'>Er Saurav</h1>
-            <label className='text-gray-500'>email@gmail.com</label>
+            <h1 className='font-medium capitalize'>{item.user.fullname}</h1>
+            <label className='text-gray-500'>{item.user.email}</label>
           </div>
         </div>
       )
@@ -75,29 +44,36 @@ const Orders = () => {
     {
       title: "Product",
       key: "product",
-      render: (item: any) => (
-        <label>{item.product.productName}</label>
+      render: (item: any, index: any) => (
+        <label key={index}>{item.product.title}</label>
       )
     },
     {
       title: "Price",
       key: "price",
-      render: (item: any) => (
-        <label>${item.product.price}</label>
+      render: (item: any, index: any) => (
+        <label key={index}>${item.product.price}</label>
+      )
+    },
+    {
+      title: "Discount",
+      key: "dicsount",
+      render: (item: any, index: any) => (
+        <label key={index}>{item.product.discount}%</label>
       )
     },
     {
       title: "Address",
       key: "address",
-      render: () => (
-        <label className='text-gray-600'>742 Evergreen, Springfield, USA</label>
+      render: (item: any, index: any) => (
+        <label className='text-gray-600' key={index}>{item.user.address || "Address not found"}</label>
       )
     },
     {
       title: "Status",
       key: "status",
-      render: () => (
-        <Select placeholder="status" style={{width: 120}}>
+      render: (item: any, index: any) => (
+        <Select placeholder="status" style={{width: 120}} defaultValue={item.status} onChange={(value) => changeStatus(value, item._id)}>
           <Select.Option value="processing">Processing</Select.Option>
           <Select.Option value="dispatched">Dispatched</Select.Option>
           <Select.Option value="returned">Returned</Select.Option>
@@ -119,7 +95,7 @@ const Orders = () => {
       <Table 
         columns={columns}
         dataSource={data}
-        rowKey="orderId"
+        rowKey="_id"
       />
     </div>
   )
