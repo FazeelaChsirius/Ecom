@@ -1,9 +1,8 @@
 'use client'
-
 import DataInterface from '@/interface/data.interface'
 import clientCatchError from '@/lib/client-catch-error'
 import { ShoppingCartOutlined } from '@ant-design/icons'
-import { Button, Card } from 'antd'
+import { Button, Card, message } from 'antd'
 import axios from 'axios'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -11,6 +10,7 @@ import React, { FC, useEffect, useState } from 'react'
 import "@ant-design/v5-patch-for-react-19"
 import { getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { mutate } from 'swr'
 
 const Products: FC<DataInterface> = ({ data }) => {
   const [isBrowser, setIsBrowser] = useState(false)
@@ -26,8 +26,9 @@ const Products: FC<DataInterface> = ({ data }) => {
       if(!session)
         return router.push("/login")
       
-      const {data} = await axios.post('/api/cart', {product: id})
-      console.log('cart-data', data)
+      await axios.post('/api/cart', {product: id})
+      message.success("Product added to cart")
+      mutate('/api/cart?count=true')
       
     } catch (err) {
       clientCatchError(err)
