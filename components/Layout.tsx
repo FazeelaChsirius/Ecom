@@ -5,11 +5,12 @@ import React, { FC } from 'react'
 import 'animate.css'
 import Logo from './shared/Logo'
 import Link from 'next/link'
-import { Avatar, Badge, Button, Dropdown, Tooltip } from 'antd'
-import { LogoutOutlined, ProfileOutlined, SettingOutlined, ShoppingCartOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons'
+import { Avatar, Badge, Dropdown, Tooltip } from 'antd'
+import { LogoutOutlined, SettingOutlined, ShoppingCartOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons'
 import { usePathname } from 'next/navigation'
 import { SessionProvider, signOut, useSession } from 'next-auth/react'
-import { sign } from 'crypto'
+import useSWR from 'swr'
+import fetcher from '@/lib/fetcher'
 
 const menus = [
   {
@@ -25,6 +26,9 @@ const menus = [
 const Layout: FC<ChildrenInterface> = ({children}) => {
   const pathname = usePathname()
   const session = useSession()
+
+  const {data} = useSWR('/api/cart?count=true', fetcher)
+  console.log('carts-count', data)
   
   const blacklists = [
     "/admin",
@@ -120,11 +124,16 @@ const Layout: FC<ChildrenInterface> = ({children}) => {
           {
             session.data && 
             <div className='flex items-center gap-8 animate__animated animate__fadeIn'>
-              <Tooltip title="Your carts">
-                <Badge>
-                  <ShoppingCartOutlined className='text-3xl !text-slate-400'/>
-                </Badge> 
-              </Tooltip>
+              {
+                session.data.user.role === "user" &&
+                <Tooltip title="Your carts">
+                  <Link href="/user/carts">
+                    <Badge count={data && data.count}>
+                      <ShoppingCartOutlined className='text-3xl !text-slate-400'/>
+                    </Badge> 
+                  </Link>
+                </Tooltip>
+              }
 
               <Dropdown menu={getMenu(session.data.user.role)}>
                 <Avatar 
