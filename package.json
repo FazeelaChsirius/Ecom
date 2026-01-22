@@ -13,6 +13,8 @@
     "@ant-design/icons": "^5.6.1",
     "@ant-design/nextjs-registry": "^1.0.2",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.6.1",
     "animate.css": "^4.1.1",
     "antd": "^5.26.3",
     "axios": "^1.10.0",
@@ -28,6 +30,7 @@
     "next-auth": "^4.24.13",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "stripe": "^20.1.2",
     "swr": "^2.3.4",
     "uuid": "^11.1.0"
   },

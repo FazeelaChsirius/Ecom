@@ -28,7 +28,6 @@ const Layout: FC<ChildrenInterface> = ({children}) => {
   const session = useSession()
 
   const {data} = useSWR('/api/cart?count=true', fetcher)
-  console.log('carts-count', data)
   
   const blacklists = [
     "/admin",

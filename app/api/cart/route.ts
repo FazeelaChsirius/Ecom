@@ -39,8 +39,8 @@ export const GET = async (req: NextRequest) => {
         if(!session)
             return res.json({message: "Unauthorized"}, {status: 401})
 
-        if(session.user.role !== "user")
-            return res.json({message: "Unauthorized"}, {status: 401})
+        // if(session.user.role !== "user")
+        //     return res.json({message: "Unauthorized"}, {status: 401})
 
         const {searchParams} = new URL(req.url)
         if(searchParams.get("count")) {
