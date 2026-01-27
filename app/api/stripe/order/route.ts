@@ -21,7 +21,6 @@ export const POST = async (req: NextRequest) => {
 
         const body = await req.json()
         const { amount, user, orders } = body
-        console.log('stripe-body', body)
 
         const session = await stripe.checkout.sessions.create({
             mode: "payment",

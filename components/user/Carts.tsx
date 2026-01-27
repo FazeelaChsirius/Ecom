@@ -17,6 +17,7 @@ import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import { getSession } from 'next-auth/react'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import StripePayments from './StripePayments'
+import Pay from '../shared/Pay'
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -74,15 +75,18 @@ const Carts = () => {
     const products = []
     const prices = []
     const discounts = []
+    const quantity = [1]
     for(let item of data) {
       products.push(item.product._id)
       prices.push(item.product.price)
       discounts.push(item.product.discount)
+      quantity.push(item.qnt)
     }
     return {
       products,
       prices,
-      discounts
+      discounts,
+      quantity
     }
   }
 
@@ -167,16 +171,17 @@ const Carts = () => {
       }
       <div className='flex justify-end items-center gap-6'>
         <h1 className='text-2xl font-semibold'>Total payable amount - ${getTotalAmount().toLocaleString()}</h1>
-        <Button onClick={payNow} size='large' type='primary'>Pay now</Button>
+        <Button onClick={payNow} size='large' type='primary' className='!px-10 !py-4 !font-medium !bg-green-500'>Pay now</Button>
+        {/* <Pay data={data}/> */}
         
         {clientSecret && (
-        <Elements
-          stripe={stripePromise}
-          options={{ clientSecret }}
-        >
-          <StripePayments />
-        </Elements>
-      )}
+          <Elements
+            stripe={stripePromise}
+            options={{ clientSecret }}
+          >
+            <StripePayments />
+          </Elements>
+        )}
       </div>
     </div>
   )
