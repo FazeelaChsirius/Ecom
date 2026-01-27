@@ -1,23 +1,31 @@
 import mongoose, { model, models, Schema } from "mongoose";
 import UserModel from "./user.model";
 import ProductModel from "./product.model";
+import shortid from "shortid";
 
 const orderSchema = new Schema({
+    orderId: {
+        type: String
+    },
     user: {
         type: mongoose.Types.ObjectId,
         ref: UserModel,
         required: true
     },
-    product: {
+    products: [{
         type: mongoose.Types.ObjectId,
         ref: ProductModel,
         required: true
-    },
-    price: {
+    }],
+    prices: [{
         type: Number,
         required: true
-    },
-    discount: {
+    }],
+    discounts: [{
+        type: Number,
+        required: true 
+    }],
+    quantity: {
         type: Number,
         required: true 
     },
@@ -27,6 +35,11 @@ const orderSchema = new Schema({
         enum: ['processing', 'dispatched', 'returned']
     }
 }, {timestamps: true})
+
+orderSchema.pre('save', function(next) {
+    this.orderId = shortid.generate()
+    next()
+})
 
 const OrderModel = models.Order || model("Order", orderSchema)
 export default OrderModel

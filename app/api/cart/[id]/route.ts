@@ -22,7 +22,7 @@ export const PUT = async (req: NextRequest, context: IdInterface) => {
 
         let cart = null
         if(body.qnt > 0)
-            await CartModel.findByIdAndUpdate(id, {qnt: body.qnt}, {new: true}) 
+            cart = await CartModel.findByIdAndUpdate(id, {qnt: body.qnt}, {new: true}) 
         else 
            cart =  await CartModel.findByIdAndDelete(id) 
 

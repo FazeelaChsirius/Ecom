@@ -39,12 +39,12 @@ export const GET = async (req: NextRequest) => {
         const id = session.user.id
 
         if(role === "user")
-            orders = await OrderModel.find({user: id}).sort({createdAt: -1}).populate("product")
+            orders = await OrderModel.find({user: id}).sort({createdAt: -1}).populate("products")
 
         if(role === "admin")
             orders = await OrderModel.find().sort({createdAt: -1})
             .populate("user", "fullname email")
-            .populate("product")
+            .populate("products")
 
         return res.json(orders)
         

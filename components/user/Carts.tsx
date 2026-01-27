@@ -2,7 +2,6 @@
 import fetcher from '@/lib/fetcher'
 import React, { useState } from 'react'
 import useSWR, { mutate } from 'swr'
-import Error from '../shared/Error'
 import { Button, Card, Empty, Skeleton, Space } from 'antd'
 import Image from 'next/image'
 import priceCalculate from '@/lib/price-calculate'
@@ -10,16 +9,30 @@ import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
 import '@ant-design/v5-patch-for-react-19'
 import clientCatchError from '@/lib/client-catch-error'
 import axios from 'axios'
+import ErrorMessage from '../shared/ErrorMessage'
+import { useRouter } from 'next/navigation'
+import {loadStripe} from '@stripe/stripe-js'
+import { Elements } from "@stripe/react-stripe-js"
+import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
+import { getSession } from 'next-auth/react'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import StripePayments from './StripePayments'
+import Pay from '../shared/Pay'
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+)
 
 const Carts = () => {
   const [loading, setLoading] = useState({state: false, index: 0, buttonIndex: 0})
   const {data, error, isLoading} = useSWR('/api/cart', fetcher)
+  const [clientSecret, setClientSecret] = useState<string | null>(null) 
+  const session = getSession()
+  const router = useRouter()
 
-  if(isLoading)
-    return <Skeleton active />
+  if(isLoading) return <Skeleton active />
 
-  if(error)
-    return <Error />
+  if(error) return <ErrorMessage />
 
   const updateQnt = async (num: number, id: string, index: number, buttonIndex: number) => {
     try {
@@ -49,13 +62,54 @@ const Carts = () => {
     }
   }
 
-  const getTotalAmount = (data: any) => {
+  const getTotalAmount = () => {
     let sum = 0
     for(let item of data) {
       const amount = priceCalculate(item.product.price, item.product.discount)*item.qnt
       sum = sum + amount
     }
     return sum 
+  }
+
+  const getOrderPayload = () => {
+    const products = []
+    const prices = []
+    const discounts = []
+    const quantity = [1]
+    for(let item of data) {
+      products.push(item.product._id)
+      prices.push(item.product.price)
+      discounts.push(item.product.discount)
+      quantity.push(item.qnt)
+    }
+    return {
+      products,
+      prices,
+      discounts,
+      quantity
+    }
+  }
+
+  const payNow = async () => {
+    try {
+      const session = await getSession()
+      const payload = {
+        amount: getTotalAmount(),
+        orders: getOrderPayload(),
+        user: {
+          id: session?.user.id,
+          name: session?.user.name,
+          email: session?.user.email
+        }
+      }
+      console.log('amount-payload', payload)
+
+      const {data} = await axios.post('/api/stripe/order', payload)
+      router.replace(data.url)
+      
+    } catch (err) {
+      return clientCatchError(err)
+    }
   }
 
   if(data.length === 0) 
@@ -116,8 +170,18 @@ const Carts = () => {
         ))
       }
       <div className='flex justify-end items-center gap-6'>
-        <h1 className='text-2xl font-semibold'>Total payable amount - ${getTotalAmount(data).toLocaleString()}</h1>
-        <Button size='large' type='primary'>Pay now</Button>
+        <h1 className='text-2xl font-semibold'>Total payable amount - ${getTotalAmount().toLocaleString()}</h1>
+        <Button onClick={payNow} size='large' type='primary' className='!px-10 !py-4 !font-medium !bg-green-500'>Pay now</Button>
+        {/* <Pay data={data}/> */}
+        
+        {clientSecret && (
+          <Elements
+            stripe={stripePromise}
+            options={{ clientSecret }}
+          >
+            <StripePayments />
+          </Elements>
+        )}
       </div>
     </div>
   )
