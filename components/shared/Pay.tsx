@@ -58,6 +58,12 @@ const Pay: FC<PayInterface> = ({data, onSuccess, onFailed}) => {
     const payNow = async () => {
         try {
             const session = await getSession()
+
+            if(!session?.user.address.pincode) {
+                sessionStorage.setItem("message", "Please update your address first")
+                return router.push("/user/settings")
+            }
+
             const payload = {
                 amount: getTotalAmount(),
                 orders: getOrderPayload(),

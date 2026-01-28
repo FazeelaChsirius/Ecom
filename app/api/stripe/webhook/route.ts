@@ -17,6 +17,7 @@ interface CreateOrderInterface {
     products: string[]
     discounts: string[]
     prices: string[]
+    grossTotal: number
 }
 
 interface CreatePaymentInterface {
@@ -95,8 +96,9 @@ export const POST = async (req: NextRequest) => {
             const user = session.metadata.user
             const orders = JSON.parse(session.metadata.orders)
             const paymentId = session.id
+            const grossTotal = session.amount_total
 
-            const orderId = await createOrder({ user, ...orders })
+            const orderId = await createOrder({ user, ...orders, grossTotal })
             if (!orderId)
                 return res.json({ message: "Failed to create order" }, { status: 424 })
 

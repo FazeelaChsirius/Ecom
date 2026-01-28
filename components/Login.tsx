@@ -1,7 +1,7 @@
 'use client'
 import { Button, Card, Divider, Form, Input } from 'antd'
 import Image from 'next/image'
-import React from 'react'
+import React, { useState } from 'react'
 import Logo from './shared/Logo'
 import { ArrowRightOutlined, GoogleOutlined } from '@ant-design/icons'
 import '@ant-design/v5-patch-for-react-19';
@@ -11,10 +11,12 @@ import { getSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 const Login = () => {
+    const [loading, setLoading] = useState(false)
     const router = useRouter()
 
     const login = async (value: any) => {
         try {
+            setLoading(true)
             const payload = {
                 ...value,
                 redirect: false
@@ -33,6 +35,9 @@ const Login = () => {
             
         } catch (err) {
             clientCatchError(err)
+        } 
+        finally {
+            setLoading(false)
         }
     }
 
@@ -86,7 +91,7 @@ const Login = () => {
                             </Form.Item>
 
                             <Form.Item>
-                                <Button htmlType='submit' size='large' type='primary' icon={<ArrowRightOutlined />} className='!bg-violet-500 hover:!bg-violet-600'>Sign in</Button>
+                                <Button loading={loading} htmlType='submit' size='large' type='primary' icon={<ArrowRightOutlined />} className='!bg-violet-500 hover:!bg-violet-600'>Sign in</Button>
                             </Form.Item>
                         </Form>
                         <Divider />
