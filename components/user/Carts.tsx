@@ -5,7 +5,7 @@ import useSWR, { mutate } from 'swr'
 import { Button, Card, Empty, Skeleton, Space } from 'antd'
 import Image from 'next/image'
 import priceCalculate from '@/lib/price-calculate'
-import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
+import { DeleteOutlined, MinusOutlined, PlusOutlined, ShopOutlined } from '@ant-design/icons'
 import '@ant-design/v5-patch-for-react-19'
 import clientCatchError from '@/lib/client-catch-error'
 import axios from 'axios'
@@ -13,11 +13,9 @@ import ErrorMessage from '../shared/ErrorMessage'
 import { useRouter } from 'next/navigation'
 import {loadStripe} from '@stripe/stripe-js'
 import { Elements } from "@stripe/react-stripe-js"
-import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import { getSession } from 'next-auth/react'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import StripePayments from './StripePayments'
-import Pay from '../shared/Pay'
+import Link from 'next/link'
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -27,7 +25,6 @@ const Carts = () => {
   const [loading, setLoading] = useState({state: false, index: 0, buttonIndex: 0})
   const {data, error, isLoading} = useSWR('/api/cart', fetcher)
   const [clientSecret, setClientSecret] = useState<string | null>(null) 
-  const session = getSession()
   const router = useRouter()
 
   if(isLoading) return <Skeleton active />
@@ -113,7 +110,14 @@ const Carts = () => {
   }
 
   if(data.length === 0) 
-    return <Empty />
+    return (
+      <div className='flex flex-col items-center gap-4'>
+        <Empty description="Your cart is empty" />
+        <Link href="/">
+          <Button type='primary' icon={<ShopOutlined />} size='large'>Shop now</Button>
+        </Link>
+      </div>
+    )
 
   return (
     <div className='flex flex-col gap-6'>

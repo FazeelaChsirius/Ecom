@@ -5,6 +5,7 @@ mongoose.connect(db)
 import { NextRequest, NextResponse as res } from "next/server"
 import mongoose from "mongoose"
 import Stripe from "stripe"
+import fs from "fs"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../../auth/[...nextauth]/route"
 
@@ -37,7 +38,7 @@ export const POST = async (req: NextRequest) => {
             metadata: {
                 shopName: "Ecom Shops",
                 description: "Bulk Product",
-                currency: "inr",
+                currency: "usd",
                 userId: user.id,
                 name: user.name,
                 email: user.email,

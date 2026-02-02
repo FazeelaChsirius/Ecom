@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse as res } from "next/server"
 import Stripe from "stripe"
-import serverCatchError from "@/lib/server-catch-error"
 import OrderModel from "@/models/order.model"
 import PaymentModel from "@/models/payment.model"
 import CartModel from "@/models/cart.model"
 import fs from "fs"
 import moment from "moment"
 import path from "path"
+import ServerCatchError from "@/lib/server-catch-error"
 
 const root = process.cwd()
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-
 interface CreateOrderInterface {
-    user: string
+    userId: string
     products: string[]
     discounts: string[]
     prices: string[]
@@ -23,14 +20,20 @@ interface CreateOrderInterface {
 interface CreatePaymentInterface {
     user: string
     paymentId: string
-    order: string
+    orderId: string
     vendor?: "stripe"
+    currency: string | null
+    amount: number | null
+    // status: string | null
+    // tax: string
+    // fee: number
+    // payment_method_types: string | null
 }
 
-interface DeleteCartsInterface {
-    user: string
-    products: string[]
-}
+// interface DeleteCartsInterface {
+//     user: string
+//     products: string[]
+// }
 
 const createLog = (err: unknown, service: string) => {
     if(err instanceof Error) {
@@ -43,125 +46,22 @@ const createLog = (err: unknown, service: string) => {
 
 const createOrder = async (order: CreateOrderInterface) => {
     try {
-        const { _id } = await OrderModel.create(order)
-        return _id.toString()
+        const { orderId } = await OrderModel.create(order)
+        return orderId
 
     } catch (err) {
         return createLog(err, "order")
     }
 }
 
-const deleteCarts = async (carts: DeleteCartsInterface) => {
-    try {
-        const query = carts.products.map((item) => ({user: carts.user, product: item}))
-        await CartModel.deleteMany({$or: query})
-        return true
-        
-    } catch (err) {
-        return createLog(err, "delete-cart")
-    }
-}
-
-const createPayment = async (payment: CreatePaymentInterface) => {
-    try {
-        await PaymentModel.create(payment)
-        return true
-
-    } catch (err) {
-        return createLog(err, "payment")
-    }
-}
-
-export const POST = async (req: NextRequest) => {
-    try {
-        const signature = req.headers.get("stripe-signature")
-        if (!signature)
-            return res.json({ message: "Invalid signature" }, { status: 400 })
-
-        const body = await req.text()
-
-        const event = stripe.webhooks.constructEvent(
-            body,
-            signature,
-            process.env.STRIPE_WEBHOOK_SECRET!
-        )
-
-        if (event.type === "checkout.session.completed") {
-            const session = event.data.object as Stripe.Checkout.Session
-
-            if (!session.metadata?.user || !session.metadata?.orders) {
-                return res.json({ message: "Invalid metadata" }, { status: 400 })
-            }
-
-            const user = session.metadata.user
-            const orders = JSON.parse(session.metadata.orders)
-            const paymentId = session.id
-            const grossTotal = session.amount_total
-
-            const orderId = await createOrder({ user, ...orders, grossTotal })
-            if (!orderId)
-                return res.json({ message: "Failed to create order" }, { status: 424 })
-
-            const payment = await createPayment({
-                user,
-                order: orderId,
-                paymentId,
-                vendor: "stripe",
-            })
-
-            if (!payment)
-                return res.json({ message: "Failed to create payment" }, { status: 424 })
-
-            await deleteCarts({user, products: orders.products})
-
-            return res.json({ success: true })
-        }
-
-        if (event.type === "payment_intent.payment_failed") {
-            console.log("Stripe payment failed")
-        }
-
-        return res.json({ success: true })
-    } catch (err) {
-        console.log(err)
-        return serverCatchError(err)
-    }
-}
-
-
-// import { NextRequest, NextResponse as res } from "next/server"
-// import fs from "fs"
-// import moment from "moment"
-// import OrderModel from "@/models/order.model"
-// import ServerCatchError from "@/lib/server-catch-error"
-// import Stripe from "stripe"
-// import PaymentModel from "@/models/payment.model"
-// interface CreateOrderInterface {
-//     user: string
-//     products: string[]
-//     prices: string[]
-//     discounts: string[]
-// }
-// interface CreatePaymentInterface {
-//     user: string
-//     order: string
-//     paymentId: string
-//     vendor?: 'stripe' | 'razorpay'
-// }
-
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-
-// const createOrder = async (order: CreateOrderInterface) => {
+// const deleteCarts = async (carts: DeleteCartsInterface) => {
 //     try {
-//         const {_id} = await OrderModel.create(order)
-//         return _id
+//         const query = carts.products.map((item) => ({user: carts.user, product: item}))
+//         await CartModel.deleteMany({$or: query})
+//         return true
         
 //     } catch (err) {
-//         if(err instanceof Error) {
-//             const dateTime = moment().format('DD-MM-YY:hh:mm:ss:A')
-//             fs.writeFileSync(`logs/${dateTime}-ORDER_ERR_LOG.txt`, err.message)
-//             return false
-//         }
+//         return createLog(err, "delete-cart")
 //     }
 // }
 
@@ -169,62 +69,100 @@ export const POST = async (req: NextRequest) => {
 //     try {
 //         await PaymentModel.create(payment)
 //         return true
-        
+
 //     } catch (err) {
-//         if(err instanceof Error) {
-//             const dateTime = moment().format('DD-MM-YY:hh:mm:ss:A')
-//             fs.writeFileSync(`logs/${dateTime}-PAYMENT_ERR_LOG.txt`, err.message)
-//             return false
-//         }
+//         return createLog(err, "payment")
 //     }
 // }
 
+export const POST = async (req: NextRequest) => {
+    try {
+        const body = await req.text()
+        const parsedBody = JSON.parse(body)
+
+        const paymentData = JSON.stringify(parsedBody, null, 2)
+        fs.writeFileSync("payment.json", paymentData)
+
+        const data = parsedBody.data.object.status
+        console.log('webhook-status', data)
+
+        const amount = parsedBody.data.object.amount
+        console.log('webhook-amount', amount)
+
+        const currency = parsedBody.data.object.currency
+        console.log('webhook-currency', currency)
+
+        const metadata = parsedBody.data.object.metadata
+        console.log('metadata', metadata)
+
+        const orders = parsedBody.data.object.metadata.orders
+        console.log('orders', orders)
+
+        const userId = parsedBody.data.object.userId
+        console.log('userId', userId)
+        
+        // const metadata = req.body.data.object.metadata
+        // const products = JSON.parse(metadata.products)
+
+        const orderId = await createOrder({userId, ...orders})
+
+        if(!orderId)
+            return res.json({message: 'Failed to create order'}, {status: 424})
+
+        return res.json({message: "Request received from stripe"})
+
+    } catch (err) {
+        return ServerCatchError(err)
+    }
+}
+
 // export const POST = async (req: NextRequest) => {
 //     try {
-//         const signature = req.headers.get('stripe-signature')
-//         if(!signature)
-//             return res.json({message: "Invalid signature"}, {status: 400})
+//         const paymentData = JSON.stringify(req.body, null, 2)
+//         fs.writeFileSync("payment.json", paymentData)
+//         res.json({message: "Request received from stripe"})
 
-//         const body = await req.text()
+//         // const signature = req.headers.get("stripe-signature")
+//         // if (!signature)
+//         //     return res.json({ message: "Invalid signature" }, { status: 400 })
 
-//         let event: Stripe.Event
 
-//         event = stripe.webhooks.constructEvent(
-//             body,
-//             signature,
-//             process.env.STRIPE_WEBHOOK_SECRET!
-//         )
+//         // if (event.type === "checkout.session.completed") {
+//         //     const session = event.data.object as Stripe.Checkout.Session
 
-//         if(event.type === "checkout.session.completed") {
-//             const session = event.data.object as Stripe.Checkout.Session
+//         //     if (!session.metadata?.user || !session.metadata?.orders) {
+//         //         return res.json({ message: "Invalid metadata" }, { status: 400 })
+//         //     }
+//         //     // const {currency, status, payment_method_types} = event.data.object
+//         //     const user = session.metadata.user
+//         //     const orders = JSON.parse(session.metadata.orders)
+//         //     const paymentId = session.id
+//         //     const grossTotal = session.amount_total
 
-//             if (!session.metadata?.userId || !session.metadata?.orders) {
-//                 return res.json({ message: "Missing metadata" },{ status: 400 })
-//             }
+//         //     const orderId = await createOrder({ user, ...orders, grossTotal })
+//         //     if (!orderId)
+//         //         return res.json({ message: "Failed to create order" }, { status: 424 })
 
-//             const user: string = session.metadata?.userId
-//             const orders = JSON.parse(session.metadata?.orders || "[]")
-//             const paymentId = session.id
+//         //     const payment = await createPayment({
+//         //         user,
+//         //         orderId,
+//         //         paymentId,
+//         //         amount: grossTotal,
+//         //         currency: session.currency
+//         //     })
 
-//             const orderDoc = await OrderModel.create({ user, ...orders})
+//         //     if (!payment)
+//         //         return res.json({ message: "Failed to create payment" }, { status: 424 })
 
-//             const orderId = orderDoc._id.toString()
+//         //     await deleteCarts({user, products: orders.products})
 
-//             const payment = await createPayment({
-//                 user,
-//                 order: orderId,
-//                 paymentId,
-//                 vendor: "stripe",
-//             })
+//         //     return res.json({ success: true })
+//         // }
 
-//             if(!payment)
-//                 return res.json({message: 'Failed to create payment'}, {status: 424})
-
-//             return res.json({success: true})
-//         }
-//         return res.json({success: true})
+//         // return res.json({ success: true })
 
 //     } catch (err) {
-//         return ServerCatchError(err)
+//         console.log(err)
+//         return serverCatchError(err)
 //     }
 // }

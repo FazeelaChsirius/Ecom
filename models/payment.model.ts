@@ -8,19 +8,42 @@ const paymentSchema = new Schema({
         ref: UserModel,
         required: true
     },
-    order: {
+    orderId: {
         type: mongoose.Types.ObjectId,
-        ref: OrderModel,
-        required: true
-    },
-    paymentId: {
-        type: String,
         required: true
     },
     vendor: {
         type: String,
         default: 'stripe',
         enum: ['stripe', 'razorpay']
+    },
+    paymentId: {
+        type: String,
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true
+    },
+    currency: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        required: true
+    },
+    method: {
+        type: String,
+        required: true
+    },
+    tax: {
+        type: Number,
+        default: 0
+    },
+    fee: {
+        type: Number,
+        default: 0
     }
 }, {timestamps: true})
 
