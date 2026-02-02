@@ -13,6 +13,8 @@
     "@ant-design/icons": "^5.6.1",
     "@ant-design/nextjs-registry": "^1.0.2",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.6.1",
     "animate.css": "^4.1.1",
     "antd": "^5.26.3",
     "axios": "^1.10.0",
@@ -28,6 +30,8 @@
     "next-auth": "^4.24.13",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "shortid": "^2.2.17",
+    "stripe": "^20.1.2",
     "swr": "^2.3.4",
     "uuid": "^11.1.0"
   },
@@ -38,6 +42,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/shortid": "^2.2.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
