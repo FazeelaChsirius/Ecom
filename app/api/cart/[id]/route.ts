@@ -4,8 +4,9 @@ import ServerCatchError from "@/lib/server-catch-error"
 import mongoose from "mongoose"
 import { getServerSession } from "next-auth"
 import { NextRequest, NextResponse as res } from "next/server"
-import { authOptions } from "../../auth/[...nextauth]/route"
+
 import CartModel from "@/models/cart.model"
+import { authOptions } from "@/lib/auth"
 mongoose.connect(db)
 
 export const PUT = async (req: NextRequest, context: IdInterface) => {
@@ -36,7 +37,7 @@ export const PUT = async (req: NextRequest, context: IdInterface) => {
     }
 }
 
-export const DELETE = async (req: NextRequest, context: IdInterface) => {
+export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
     try {
         const session = await getServerSession(authOptions)
         if(!session)
@@ -45,7 +46,7 @@ export const DELETE = async (req: NextRequest, context: IdInterface) => {
         if(session.user.role !== "user")
             return res.json({message: "Unauthorized"}, {status: 401})
 
-        const {id} = await context.params
+        const {id} = await params
         const cart = await CartModel.findByIdAndDelete(id)
 
         if(!cart)

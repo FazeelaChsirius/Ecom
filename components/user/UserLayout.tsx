@@ -6,7 +6,7 @@ import Sider from 'antd/es/layout/Sider'
 import Link from 'next/link'
 import React, { FC } from 'react'
 import { getBreadcrumbs } from '../admin/AdminLayout'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 
 const UserLayout: FC<ChildrenInterface> = ({ children }) => {

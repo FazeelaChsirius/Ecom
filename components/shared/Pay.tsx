@@ -1,23 +1,17 @@
 'use client'
 import React, { FC, useState } from 'react'
-import { Button, Card, Skeleton, Space } from 'antd'
-import Image from 'next/image'
+import { Button } from 'antd'
 import priceCalculate from '@/lib/price-calculate'
-import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
 import '@ant-design/v5-patch-for-react-19'
 import clientCatchError from '@/lib/client-catch-error'
 import axios from 'axios'
-import ErrorMessage from '../shared/ErrorMessage'
 import { useRouter } from 'next/navigation'
 import {loadStripe} from '@stripe/stripe-js'
-import { Elements } from "@stripe/react-stripe-js"
 import { getSession, useSession } from 'next-auth/react'
-import StripePayments from '../user/StripePayments'
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 )
-
 interface PayInterface {
     data: any
     onSuccess?: () => void
@@ -32,7 +26,7 @@ const Pay: FC<PayInterface> = ({data, onSuccess, onFailed}) => {
 
     const getTotalAmount = () => {
         let sum = 0
-        for(let item of data) {
+        for(const item of data) {
         const amount = priceCalculate(item.product.price, item.product.discount)*item.qnt
         sum = sum + amount
         }
@@ -43,7 +37,7 @@ const Pay: FC<PayInterface> = ({data, onSuccess, onFailed}) => {
         const products = []
         const prices = []
         const discounts = []
-        for(let item of data) {
+        for(const item of data) {
             products.push(item.product._id)
             prices.push(item.product.price)
             discounts.push(item.product.discount)

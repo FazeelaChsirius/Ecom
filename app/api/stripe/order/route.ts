@@ -4,12 +4,9 @@ mongoose.connect(db)
 
 import { NextRequest, NextResponse as res } from "next/server"
 import mongoose from "mongoose"
-import Stripe from "stripe"
-import fs from "fs"
 import { getServerSession } from "next-auth"
-import { authOptions } from "../../auth/[...nextauth]/route"
-
-const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_KEY_SECRET!)
+import { authOptions } from "@/lib/auth"
+import { stripe } from "@/lib/stripe"
 
 export const POST = async (req: NextRequest) => {
     try {

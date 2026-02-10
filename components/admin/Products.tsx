@@ -1,5 +1,5 @@
 'use client'
-import { ArrowRightOutlined, DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined, UploadOutlined } from '@ant-design/icons'
 import { Button, Card, Divider, Form, Input, InputNumber, message, Modal, Pagination, Popconfirm, Result, Skeleton, Tag, Upload } from 'antd'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
@@ -48,7 +48,7 @@ const Products = () => {
     try {
       values.image = values.image.file.originFileObj
       const formData = new FormData()
-      for(let key in values) {
+      for(const key in values) {
         formData.append(key, values[key])
       }
       await axios.post('/api/product', formData)
@@ -167,8 +167,8 @@ const Products = () => {
               }
               actions={[
                 <EditOutlined key="edit" className='!text-green-400' onClick={() => editProduct(item)}/>,
-                <Popconfirm title="Do you want to change image ?" onConfirm={() => deleteProduct(item._id)}>
-                  <DeleteOutlined key="delete" className='!text-rose-400'/>
+                <Popconfirm key="delete" title="Do you want to change image ?" onConfirm={() => deleteProduct(item._id)}>
+                  <DeleteOutlined className='!text-rose-400'/>
                 </Popconfirm>
               ]}
             >
@@ -182,7 +182,7 @@ const Products = () => {
                   </div>
                 }
               />
-              <Tag className='!mt-5' color='cyan'>${item.quantity} PCS</Tag>
+              <Tag className='!mt-5' color='cyan'>{item.quantity} PCS</Tag>
               <Tag className='!mt-5' color='cyan'>Out of stocks</Tag>
             </Card>
           ))

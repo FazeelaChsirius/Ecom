@@ -1,4 +1,7 @@
 import Products from "@/components/Products"
+import { fetchProducts } from "@/controller/product.controller"
+
+export const revalidate = 20
 
 export const metadata = {
   title: `Ecom - ${process.env.DOMAIN}`,
@@ -11,7 +14,7 @@ export const metadata = {
     siteName: "Ecom",
     images: [
       {
-        url: "/images/logo.jpg", // replace with your image
+        url: "/images/logo.jpg", 
       },
     ],
     locale: "en_US",
@@ -20,10 +23,8 @@ export const metadata = {
 }
 
 const HomeRouter = async () => {
-  const productRes = await fetch(`${process.env.SERVER}/api/product`)
-  const products = productRes.ok ? await productRes.json() : {data: [], total: 0}
-
-  return <Products data={products}/>
+  const data = await fetchProducts()
+  return <Products data={data} />
 }
 
 export default HomeRouter 

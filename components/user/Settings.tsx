@@ -1,6 +1,6 @@
 'use client'
 import { Button, Divider, Form, Input, InputNumber, message } from 'antd'
-import React, { use, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import "@ant-design/v5-patch-for-react-19"
 import { SaveOutlined } from '@ant-design/icons'
 import { useSession } from 'next-auth/react'
@@ -29,7 +29,7 @@ const Settings = () => {
       })
 
     }
-  }, [session])
+  }, [session, userForm])
 
   const saveChanges = async (values: any) => {
     try {

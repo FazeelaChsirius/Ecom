@@ -1,5 +1,5 @@
-const db = `${process.env.DB_URL}/${process.env.DB_NAME}`
 import mongoose from "mongoose"
+const db = `${process.env.DB_URL}/${process.env.DB_NAME}`
 mongoose.connect(db)
 
 import {v4 as uuid} from "uuid"
@@ -9,7 +9,8 @@ import ProductModel from "@/models/product.model"
 import fs from "fs"
 import path from "path"
 import { getServerSession } from "next-auth"
-import { authOptions } from "../auth/[...nextauth]/route"
+import { authOptions } from "@/lib/auth"
+import { fetchProducts, fetchProductSlugs } from "@/controller/product.controller"
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -69,12 +70,12 @@ export const GET = async (req: NextRequest) => {
 
         if(slug)
         {
-            const slugs = await ProductModel.distinct('slug')
+            const slugs = await fetchProductSlugs()
             return res.json(slugs)
         }
 
-        const products = await ProductModel.find().sort({createdAt: -1}).skip(skip).limit(limit)
-        return res.json({total, data: products})
+        const products = await fetchProducts()
+        return res.json(products)
         
     } catch (err) {
         return ServerCatchError(err)

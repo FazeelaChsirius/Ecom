@@ -2,7 +2,7 @@ import UserLayout from '@/components/user/UserLayout'
 import ChildrenInterface from '@/interface/children.interface'
 import { getServerSession } from 'next-auth'
 import React, { FC } from 'react'
-import { authOptions } from '../api/auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 import { redirect } from 'next/navigation'
 
 const UserLayoutRouter: FC<ChildrenInterface> = async ({ children }) => {
