@@ -6,7 +6,7 @@ import ServerCatchError from "@/lib/server-catch-error";
 import UserModel from "@/models/user.model";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse as res } from "next/server"
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth"
 
 export const PUT = async (req: NextRequest) => {
     try {

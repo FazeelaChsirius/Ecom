@@ -2,8 +2,9 @@ import ServerCatchError from "@/lib/server-catch-error"
 import mongoose from "mongoose"
 import { getServerSession } from "next-auth"
 import { NextRequest, NextResponse as res } from "next/server"
-import { authOptions } from "../auth/[...nextauth]/route"
+
 import CartModel from "@/models/cart.model"
+import { authOptions } from "@/lib/auth"
 const db = `${process.env.DB_URL}/${process.env.DB_NAME}`
 mongoose.connect(db)
 

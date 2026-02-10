@@ -1,10 +1,14 @@
 import Slug from '@/components/Slug'
+import { fetchProductBySlug, fetchProductSlugs } from '@/controller/product.controller'
 import SlugInterface from '@/interface/slug.interface'
+import { Metadata } from 'next'
 import React, { FC } from 'react'
 
-export const generateMetaData = async (context: SlugInterface) => {
-  const slugRes = await fetch(`${process.env.SERVER}/api/product/${context.params.slug}`)
-  const data = slugRes.ok ? await slugRes.json() : null
+export const revalidate = 20
+
+export const generateMetadata = async (context: SlugInterface): Promise<Metadata> => {
+  const { slug } = await context.params
+  const data = await fetchProductBySlug(slug)
 
   return {
     title: data ? `Ecom - ${data.title}` : 'Ecom',
@@ -13,7 +17,7 @@ export const generateMetaData = async (context: SlugInterface) => {
     openGraph: {
       title: data ? `Ecom - ${data.title}` : 'Ecom',
       description: data ? data.description : 'Ecom',
-      url: `${process.env.SERVER}/products/${context.params.slug}`,
+      url: `${process.env.SERVER}/products/${slug}`,
       siteName: "Ecom",
       images: [
         {
@@ -26,11 +30,9 @@ export const generateMetaData = async (context: SlugInterface) => {
   }
 }
 
-const SlugRouter: FC<SlugInterface> = async ({ params }) => {
+const SlugRouter: FC<SlugInterface> = async ({params}) => {
   const {slug} = await params
-  const slugRes = await fetch(`${process.env.SERVER}/api/product/${slug}`)
-  const data = slugRes.ok ? await slugRes.json() : null
-  
+  const data = await fetchProductBySlug(slug)
   return (
     <Slug data={data} title={slug}/>
   )
@@ -39,9 +41,7 @@ const SlugRouter: FC<SlugInterface> = async ({ params }) => {
 export default SlugRouter
 
 export const generateStaticParams = async () => {
-  const res = await fetch(`${process.env.SERVER}/product?slug=true`)
-
-  const slugList = await res.json()
+  const slugList = await fetchProductSlugs()
   return slugList.map((slug: string) => ({
     slug: slug
   }))

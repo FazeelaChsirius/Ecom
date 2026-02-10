@@ -2,9 +2,10 @@ const db = `${process.env.DB_URL}/${process.env.DB_NAME}`
 import ServerCatchError from "@/lib/server-catch-error"
 import PaymentModel from "@/models/payment.model"
 import mongoose from "mongoose"
+import { authOptions } from "@/lib/auth"
 import { getServerSession } from "next-auth"
 import { NextRequest, NextResponse as res } from "next/server"
-import { authOptions } from "../auth/[...nextauth]/route"
+
 mongoose.connect(db)
 
 export const POST = async (req: NextRequest) => {
@@ -18,7 +19,7 @@ export const POST = async (req: NextRequest) => {
     }
 }
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
     try {
         // const session = await getServerSession(authOptions)
         // if(!session)

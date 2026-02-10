@@ -1,4 +1,5 @@
 const db = `${process.env.DB_URL}/${process.env.DB_NAME}`
+import { authOptions } from "@/lib/auth"
 import ServerCatchError from "@/lib/server-catch-error"
 import OrderModel from "@/models/order.model"
 import mongoose from "mongoose"
@@ -6,7 +7,6 @@ import { getServerSession } from "next-auth"
 mongoose.connect(db)
 
 import { NextRequest, NextResponse as res } from "next/server"
-import { authOptions } from "../auth/[...nextauth]/route"
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -28,7 +28,7 @@ export const POST = async (req: NextRequest) => {
     }
 }
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
     try {
         const session = await getServerSession(authOptions)
         if(!session)

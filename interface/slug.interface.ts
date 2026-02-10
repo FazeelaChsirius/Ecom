@@ -1,7 +1,7 @@
 interface SlugInterface {
-    params: {
+    params: Promise<{
         slug: string
-    }
+    }>
 }
 
 export default SlugInterface

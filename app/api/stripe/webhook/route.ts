@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse as res } from "next/server"
-import Stripe from "stripe"
 import OrderModel from "@/models/order.model"
 import PaymentModel from "@/models/payment.model"
 import CartModel from "@/models/cart.model"
@@ -35,7 +34,7 @@ interface CreatePaymentInterface {
 //     products: string[]
 // }
 
-const createLog = (err: unknown, service: string) => {
+const createLog = (err: unknown) => {
     if(err instanceof Error) {
         const dateTime = moment().format('DD-MM-YYYY_hh-mm-ss_A');
         const filePath = path.join(root, 'logs', `order-error-${dateTime}.txt`)
@@ -50,7 +49,7 @@ const createOrder = async (order: CreateOrderInterface) => {
         return orderId
 
     } catch (err) {
-        return createLog(err, "order")
+        return createLog(err)
     }
 }
 

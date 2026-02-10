@@ -5,10 +5,10 @@ mongoose.connect(db)
 import ServerCatchError from "@/lib/server-catch-error";
 import UserModel from "@/models/user.model";
 import { getServerSession } from "next-auth";
-import { NextRequest, NextResponse as res } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { NextResponse as res } from "next/server";
+import { authOptions } from "@/lib/auth"
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
     try {
         const session = await getServerSession(authOptions)
         if(!session)

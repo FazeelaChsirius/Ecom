@@ -6,12 +6,11 @@ import Image from 'next/image'
 import React, { FC } from 'react'
 import '@ant-design/v5-patch-for-react-19';
 import { useRouter } from 'next/navigation'
-import Pay from './shared/Pay'
 interface TitleInterface extends DataInterface{
   title: string
 }
 
-const Slug: FC<TitleInterface> = ({ data, title }) => {
+const Slug: FC<TitleInterface> = ({ data }) => {
   const router = useRouter()
 
   if(!data)
