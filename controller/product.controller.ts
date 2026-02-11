@@ -9,6 +9,7 @@ export const fetchProducts = async (page: number = 1, limit: number = 12) => {
     const total = await ProductModel.countDocuments()
     const data = await ProductModel.find().sort({createdAt: -1}).skip(skip).limit(limit)
     return {total, data}
+    console.log('data', data)
 }
 
 export const fetchProductSlugs = async () => {
